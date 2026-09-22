@@ -1,0 +1,12 @@
+{
+    "name": "crypto-info",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "postinstall": "npm --prefix backend install",
+        "dev": "npm --prefix backend run dev",
+        "start": "npm --prefix backend start",
+        "test": "npm --prefix backend test",
+        "lint": "npm --prefix backend run lint"
+    }
+}

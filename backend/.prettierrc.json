@@ -1,0 +1,15 @@
+{
+    "tabWidth": 4,
+    "useTabs": false,
+    "singleQuote": true,
+    "semi": true,
+    "bracketSpacing": true,
+    "printWidth": 80,
+    "arrowParens": "always",
+    "overrides": [
+        {
+            "files": "app/routers/*/routes.js",
+            "options": { "printWidth": 15000 }
+        }
+    ]
+}

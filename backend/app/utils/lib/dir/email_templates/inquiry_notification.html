@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= SITE_NAME %></title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </head>
+    <body style="margin:0;padding:0;background-color:#f4f4f4;">
+        <table cellspacing="0" cellpadding="0" width="600" align="center" bgcolor="#ffffff"
+            style="border-radius:8px;overflow:hidden;margin:30px auto;">
+            <!-- Header -->
+            <tr>
+                <td style="padding:20px;background-color:#F77A0B;text-align:center;">
+                    <span style="font-size:22px;font-family:Arial,sans-serif;color:#ffffff;font-weight:bold;">
+                        <%= SITE_NAME %>
+                    </span>
+                </td>
+            </tr>
+            <!-- Body -->
+            <tr>
+                <td style="padding:40px 30px;">
+                    <table cellspacing="0" cellpadding="0" width="100%">
+                        <tr>
+                            <td style="font-family:Arial,sans-serif;font-size:18px;font-weight:600;color:#333333;">
+                                New Contact Inquiry Received
+                            </td>
+                        </tr>
+                        <tr><td height="12"></td></tr>
+                        <tr>
+                            <td style="font-family:Arial,sans-serif;font-size:14px;color:#555555;line-height:22px;">
+                                A new message has been submitted through the FAQ contact form.
+                            </td>
+                        </tr>
+                        <tr><td height="24"></td></tr>
+
+                        <!-- Details card -->
+                        <tr>
+                            <td style="background-color:#f9f9f9;border-radius:8px;padding:20px;border-left:4px solid #F77A0B;">
+                                <table cellspacing="0" cellpadding="0" width="100%">
+                                    <tr>
+                                        <td style="font-family:Arial,sans-serif;font-size:12px;color:#999999;text-transform:uppercase;letter-spacing:1px;">
+                                            From
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-family:Arial,sans-serif;font-size:15px;font-weight:600;color:#333333;padding-top:4px;">
+                                            <%= SENDER_NAME %> &lt;<%= SENDER_EMAIL %>&gt;
+                                        </td>
+                                    </tr>
+                                    <tr><td height="16"></td></tr>
+                                    <tr>
+                                        <td style="font-family:Arial,sans-serif;font-size:12px;color:#999999;text-transform:uppercase;letter-spacing:1px;">
+                                            Message
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-family:Arial,sans-serif;font-size:14px;color:#333333;line-height:22px;padding-top:6px;">
+                                            <%= MESSAGE %>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr><td height="28"></td></tr>
+                        <tr>
+                            <td style="font-family:Arial,sans-serif;font-size:13px;color:#555555;line-height:20px;">
+                                Log in to the admin panel to view and reply to this inquiry.
+                            </td>
+                        </tr>
+                        <tr><td height="20"></td></tr>
+                        <tr>
+                            <td style="font-family:Arial,sans-serif;font-size:14px;color:#333333;">
+                                Thanks,<br />
+                                <strong><%= SITE_NAME %> System</strong>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+                <td style="padding:15px;background-color:#F77A0B;text-align:center;">
+                    <span style="font-size:12px;color:#ffffff;font-family:Arial,sans-serif;">
+                        &copy; <%= SITE_NAME %>. All rights reserved.
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

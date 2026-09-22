@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<body style="font-family:Arial,sans-serif;color:#172033;line-height:1.5">
+    <h2>CoinDCX candle alert</h2>
+    <p><strong><%= alert.sPatternName %></strong> detected on <strong><%= alert.sSymbol %></strong>
+        <% if (alert.sDirection) { %>(<%= alert.sDirection %>)<% } %>.</p>
+    <table cellpadding="6" cellspacing="0" border="1" style="border-collapse:collapse">
+        <tr><td>Pair</td><td><%= alert.sPair %></td></tr>
+        <tr><td>Symbol</td><td><%= alert.sSymbol %></td></tr>
+        <tr><td>Timeframe</td><td><%= alert.sTimeframe %></td></tr>
+        <tr><td>Confirmed</td><td><%= alert.bIsConfirmed ? 'Yes' : 'No' %></td></tr>
+        <tr><td>Confidence</td><td><%= alert.nConfidence != null ? Number(alert.nConfidence).toFixed(2) : 'N/A' %></td></tr>
+        <tr><td>Close time (UTC)</td><td><%= utcTime %></td></tr>
+        <tr><td>Close time (Asia/Kolkata)</td><td><%= indiaTime %></td></tr>
+        <tr><td>ATR(14)</td><td><%= alert.oMetrics && alert.oMetrics.atr != null ? alert.oMetrics.atr : 'N/A' %></td></tr>
+    </table>
+
+    <% if (alert.oTradePlan) { %>
+    <% const plan = alert.oTradePlan; %>
+    <% const risk = plan.risk || {}; %>
+    <% const rr = plan.riskReward || {}; %>
+    <% const cur = risk.currency || 'INR'; %>
+    <% const lev = risk.suggestedLeverage != null ? risk.suggestedLeverage : 'N/A'; %>
+    <% const fmt = (v, d) => (v == null || v === '' || Number.isNaN(Number(v))) ? 'N/A' : Number(v).toFixed(d != null ? d : 2); %>
+
+    <h3 style="margin-top:24px">Leverage (risk plan)</h3>
+    <table cellpadding="6" cellspacing="0" border="1" style="border-collapse:collapse;background:#f8fafc">
+        <tr>
+            <td><strong>Suggested leverage</strong></td>
+            <td><strong><%= lev %>x</strong></td>
+        </tr>
+        <tr>
+            <td>Theoretical max (before safety)</td>
+            <td><%= risk.theoreticalMaxLeverage != null ? risk.theoreticalMaxLeverage + 'x' : 'N/A' %></td>
+        </tr>
+        <tr>
+            <td>How it is chosen</td>
+            <td>From stop distance, then safety factor, then account cap (TRADE_MAX_LEVERAGE_CAP)</td>
+        </tr>
+        <tr>
+            <td>Max margin fraction</td>
+            <td><%= risk.maxMarginFraction != null ? (Number(risk.maxMarginFraction) * 100).toFixed(0) + '% of account' : 'N/A' %></td>
+        </tr>
+        <tr>
+            <td>Note</td>
+            <td>Spot auto-trade does not use leverage. Futures would use this suggested value (capped).</td>
+        </tr>
+    </table>
+
+    <h3 style="margin-top:24px">Trade plan — levels</h3>
+    <table cellpadding="6" cellspacing="0" border="1" style="border-collapse:collapse">
+        <tr><td>Side</td><td><%= plan.side %></td></tr>
+        <tr><td>Entry</td><td><%= plan.entryPrice %></td></tr>
+        <tr><td>Stop loss</td><td><%= plan.stopLoss %></td></tr>
+        <tr><td>Stop distance</td><td><%= plan.stopDistancePct != null ? plan.stopDistancePct + '%' : 'N/A' %></td></tr>
+        <tr><td>Take profit 1</td><td><%= plan.takeProfit1 %> (<%= rr.tp1R != null ? rr.tp1R + 'R' : 'N/A' %>)</td></tr>
+        <tr><td>Take profit 2</td><td><%= plan.takeProfit2 %> (<%= rr.tp2R != null ? rr.tp2R + 'R' : 'N/A' %>)</td></tr>
+        <tr><td>Take profit 3</td><td><%= plan.takeProfit3 %> (<%= rr.tp3R != null ? rr.tp3R + 'R' : 'N/A' %>)</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px">Account &amp; risk sizing (₹<%= risk.accountBalance != null ? risk.accountBalance : '' %>)</h3>
+    <table cellpadding="6" cellspacing="0" border="1" style="border-collapse:collapse">
+        <tr><td>Account balance</td><td><%= cur %> <%= fmt(risk.accountBalance) %></td></tr>
+        <tr><td>Risk %</td><td><%= risk.riskPercent != null ? risk.riskPercent + '%' : 'N/A' %></td></tr>
+        <tr><td>Risk amount</td><td><%= cur %> <%= fmt(risk.riskAmount != null ? risk.riskAmount : risk.riskUsd) %></td></tr>
+        <tr><td>Position notional</td><td><%= cur %> <%= fmt(risk.positionNotional != null ? risk.positionNotional : risk.positionNotionalUsd) %></td></tr>
+        <tr><td>Margin required @ <%= lev %>x</td><td><%= cur %> <%= fmt(risk.marginRequired != null ? risk.marginRequired : risk.marginRequiredUsd) %></td></tr>
+        <tr><td>Reward at TP1</td><td><%= cur %> <%= fmt(risk.rewardAtTp1 != null ? risk.rewardAtTp1 : risk.rewardAtTp1Usd) %></td></tr>
+        <tr><td>Reward at TP2</td><td><%= cur %> <%= fmt(risk.rewardAtTp2 != null ? risk.rewardAtTp2 : risk.rewardAtTp2Usd) %></td></tr>
+    </table>
+
+    <% if (plan.notes && plan.notes.length) { %>
+    <ul style="color:#475467;font-size:13px">
+        <% plan.notes.forEach(function (note) { %>
+        <li><%= note %></li>
+        <% }); %>
+    </ul>
+    <% } %>
+    <% } %>
+
+    <% if (alert.oTradeExecution) { %>
+    <% const ex = alert.oTradeExecution; %>
+    <% const ps = ex.planSummary || {}; %>
+    <h3 style="margin-top:24px">Auto-trade status</h3>
+    <table cellpadding="6" cellspacing="0" border="1" style="border-collapse:collapse">
+        <tr><td>Status</td><td><%= ex.status %></td></tr>
+        <tr><td>Market mode</td><td><%= ex.market || 'N/A' %></td></tr>
+        <tr><td>Detail</td><td><%= ex.reason || '' %></td></tr>
+        <% if (ps.quantity != null) { %>
+        <tr><td>Order qty</td><td><%= ps.quantity %></td></tr>
+        <% } %>
+        <% if (ps.spotMarket) { %>
+        <tr><td>Spot market</td><td><%= ps.spotMarket %></td></tr>
+        <% } %>
+        <% if (ps.leverage != null) { %>
+        <tr><td>Execution leverage</td><td><%= ps.leverage %>x</td></tr>
+        <% } %>
+        <% if (ps.riskAmount != null) { %>
+        <tr><td>Execution risk</td><td><%= ps.currency || 'INR' %> <%= ps.riskAmount %></td></tr>
+        <% } %>
+    </table>
+    <% } %>
+
+    <% if (alert.oInvalidation) { %>
+    <p><strong>Invalidation:</strong> <%= alert.oInvalidation.type %> @ <%= alert.oInvalidation.price %></p>
+    <% } %>
+
+    <% if (alert.sExplanation) { %>
+    <p style="color:#475467"><%= alert.sExplanation %></p>
+    <% } %>
+
+    <p style="color:#667085;font-size:12px">Informational only. Not financial advice. Suggested leverage is for risk framing — not a guarantee of profit.</p>
+</body>
+</html>

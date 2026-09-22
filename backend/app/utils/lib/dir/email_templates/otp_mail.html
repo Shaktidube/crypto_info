@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= SITE_NAME %></title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </head>
+    <body style="margin: 0px; padding: 0px; background-color: #f4f4f4;">
+        <table
+            cellspacing="0"
+            cellpadding="0"
+            width="600"
+            align="center"
+            bgcolor="#ffffff"
+            style="border-radius: 8px; overflow: hidden; margin: 30px auto;"
+        >
+            <tr>
+                <td
+                    style="
+                        padding: 20px;
+                        background-color: #F77A0B;
+                        text-align: center;
+                    "
+                >
+                    <span
+                        style="
+                            font-size: 22px;
+                            font-family: Arial, sans-serif;
+                            color: #ffffff;
+                            font-weight: bold;
+                        "
+                    ><%= SITE_NAME %></span>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 40px 30px;">
+                    <table cellspacing="0" cellpadding="0" width="100%">
+                        <tr>
+                            <td
+                                style="
+                                    font-family: Arial, sans-serif;
+                                    font-size: 18px;
+                                    font-weight: 600;
+                                    color: #333333;
+                                "
+                            >
+                                Your One-Time Password (OTP)
+                            </td>
+                        </tr>
+                        <tr><td height="15"></td></tr>
+                        <tr>
+                            <td
+                                style="
+                                    font-family: Arial, sans-serif;
+                                    font-size: 15px;
+                                    color: #555555;
+                                    line-height: 22px;
+                                "
+                            >
+                                Use the OTP below to verify your identity.
+                                This code is valid for <strong>10 minutes</strong>.
+                                Do not share it with anyone.
+                            </td>
+                        </tr>
+                        <tr><td height="30"></td></tr>
+                        <tr>
+                            <td align="center">
+                                <div
+                                    style="
+                                        display: inline-block;
+                                        background-color: #f0f4ff;
+                                        border: 2px dashed #F77A0B;
+                                        border-radius: 8px;
+                                        padding: 16px 40px;
+                                        font-family: 'Courier New', monospace;
+                                        font-size: 36px;
+                                        font-weight: bold;
+                                        color: #F77A0B;
+                                        letter-spacing: 10px;
+                                    "
+                                ><%= OTP %></div>
+                            </td>
+                        </tr>
+                        <tr><td height="30"></td></tr>
+                        <tr>
+                            <td
+                                style="
+                                    font-family: Arial, sans-serif;
+                                    font-size: 13px;
+                                    color: #999999;
+                                    line-height: 20px;
+                                "
+                            >
+                                If you did not request this OTP, please
+                                ignore this email. Your account is safe.
+                            </td>
+                        </tr>
+                        <tr><td height="20"></td></tr>
+                        <tr>
+                            <td
+                                style="
+                                    font-family: Arial, sans-serif;
+                                    font-size: 14px;
+                                    color: #333333;
+                                "
+                            >
+                                Thanks,<br />
+                                <strong><%= SITE_NAME %> Team</strong>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        padding: 15px;
+                        background-color: #F77A0B;
+                        text-align: center;
+                    "
+                >
+                    <span
+                        style="
+                            font-size: 12px;
+                            color: #ffffff;
+                            font-family: Arial, sans-serif;
+                        "
+                    >&copy; <%= SITE_NAME %>. All rights reserved.</span>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
