@@ -58,6 +58,10 @@ const config = {
 
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
 
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY?.trim() || '',
+    STRIPE_WEBHOOK_SECRET:
+        process.env.STRIPE_WEBHOOK_SECRET?.trim() || '',
+
     KRAKEN_CLIENT_ID: process.env.KRAKEN_CLIENT_ID || '',
     KRAKEN_CLIENT_SECRET: process.env.KRAKEN_CLIENT_SECRET || '',
     KRAKEN_REDIRECT_URI: process.env.KRAKEN_REDIRECT_URI || '',
@@ -118,21 +122,23 @@ const config = {
         Number(process.env.CANDLE_BODY_TOLERANCE_PERCENT) || 0.05,
     /**
      * Comma-separated pattern names the scanner may alert on.
-     * Default keeps historical behavior: confirmed Bearish Harami only.
-     * Set CANDLE_USE_ANALYSIS_ENGINE=true to route through the layered
-     * candlestick engine (geometry → context → confirmation → score).
+     * Defaults to premium patterns handled by the layered engine.
      */
     CANDLE_ENABLED_PATTERNS: (process.env.CANDLE_ENABLED_PATTERNS ||
-        'Bearish Harami')
+        'Bullish Engulfing,Bearish Engulfing,Evening Star,Morning Star,' +
+        'Three Inside Down,Three Inside Up')
         .split(',')
         .map((name) => name.trim())
         .filter(Boolean),
     CANDLE_USE_ANALYSIS_ENGINE:
-        process.env.CANDLE_USE_ANALYSIS_ENGINE === 'true',
+        process.env.CANDLE_USE_ANALYSIS_ENGINE !== 'false',
     CANDLE_REQUIRE_CONTEXT_MATCH:
         process.env.CANDLE_REQUIRE_CONTEXT_MATCH !== 'false',
+    /** Wait for a closed follow-through candle on two-candle patterns. */
+    CANDLE_REQUIRE_PRICE_CONFIRMATION:
+        process.env.CANDLE_REQUIRE_PRICE_CONFIRMATION !== 'false',
     CANDLE_MIN_CONFIDENCE:
-        Number(process.env.CANDLE_MIN_CONFIDENCE) || 0.35,
+        Number(process.env.CANDLE_MIN_CONFIDENCE) || 0.55,
     /** Only alert on premium multi-candle setups with strong confirmation. */
     CANDLE_HIGH_QUALITY_ONLY:
         process.env.CANDLE_HIGH_QUALITY_ONLY !== 'false',

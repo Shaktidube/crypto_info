@@ -68,7 +68,6 @@ const User = mongoose.Schema(
         sGoogleId: {
             type: String,
             default: null,
-            sparse: true,
         },
         bIsProfileComplete: {
             type: Boolean,
@@ -122,6 +121,17 @@ const User = mongoose.Schema(
             type: Number,
             default: null,
         },
+        sSubscriptionPlan: { type: String, default: null },
+        eSubscriptionStatus: {
+            type: String,
+            enum: ['inactive', 'active'],
+            default: 'inactive',
+            index: true,
+        },
+        dSubscriptionStart: { type: Date, default: null },
+        dSubscriptionEnd: { type: Date, default: null, index: true },
+        sStripeCustomerId: { type: String, default: '' },
+        aProcessedStripeSessions: { type: [String], default: [] },
         isDeleted: {
             type: Boolean,
             default: false,
@@ -135,6 +145,13 @@ const User = mongoose.Schema(
 );
 
 User.index({ sEmail: 1 });
+User.index(
+    { sGoogleId: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { sGoogleId: { $type: 'string' } },
+    },
+);
 
 User.statics.findByToken = async function (token) {
     let decoded;

@@ -64,9 +64,19 @@ function defaultThresholds() {
         // Three white soldiers / black crows: progressive OHLC.
         soldiersMinBodyPercent: 0.40,
 
-        // Trend context (SMA slope / price vs SMA). ASSUMPTION.
+        // Prior-trend context. A signal needs agreement between moving-average
+        // alignment, slope, directional movement and market structure. These
+        // values are engineering defaults and should be calibrated by
+        // timeframe with walk-forward data.
         trendSmaPeriod: 20,
-        trendMinSlopePercent: 0.001,
+        trendFastSmaPeriod: 8,
+        trendLookbackPeriod: 12,
+        trendAtrPeriod: 14,
+        trendMinSlopePercent: 0.0002,
+        trendMinMoveAtr: 1.0,
+        trendMinEfficiencyRatio: 0.30,
+        trendMinEvidence: 4,
+        trendSwingRadius: 2,
 
         // Scoring weights (engineering model — not book certainty).
         score: {
@@ -81,6 +91,7 @@ function defaultThresholds() {
         rsiOversold: 30,
         rsiOverbought: 70,
         volumeSmaPeriod: 20,
+        confirmationMinVolumeMultiplier: 1.20,
         atrPeriod: 14,
     };
 }

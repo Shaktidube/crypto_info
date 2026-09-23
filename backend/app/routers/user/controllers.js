@@ -1,9 +1,21 @@
 const axios = require('axios');
 const fs = require('fs');
 const NodeCache = require('node-cache');
-const { User, ContactInquiry, Faq, Feature, NewsArticle, Cms } = require('../../models/index');
+const {
+    User,
+    ContactInquiry,
+    Faq,
+    Feature,
+    NewsArticle,
+    Cms,
+    CandleAlert,
+} = require('../../models/index');
 const { nodemailer, aws } = require('../../utils');
 const config = require('../../../config/config');
+const { toLatestSignalView } = require(
+    '../../services/coindcx/alertPayload'
+);
+const { subscriptionView } = require('../../services/billing/plans');
 const {
     computeKrakenStatsFromRaw,
     fetchKrakenStatsRawData,
@@ -729,9 +741,44 @@ controllers.krakenStatus = async (req, res) => {
 
 controllers.getUserDashboardData = async (req, res) => {
     try {
-        const oUser = await User.findById(req.userId).lean();
+        const oUser = await User.findById(req.userId)
+            .select([
+                'sEmail',
+                'sUsername',
+                'sBio',
+                'sProfilePicUrl',
+                'bIsProfileComplete',
+                'sSubscriptionPlan',
+                'eSubscriptionStatus',
+                'dSubscriptionStart',
+                'dSubscriptionEnd',
+                'dCreatedAt',
+            ].join(' '))
+            .lean();
         if (!oUser) return res.reply(messages.not_found('User'));
-        return res.reply(messages.success('User data'), oUser);
+        const subscription = subscriptionView(oUser);
+        const alerts = subscription.active
+            ? await CandleAlert.find()
+                .sort({ dSignalCandleCloseTime: -1 })
+                .limit(12)
+                .lean()
+            : [];
+        const signals = alerts.map(toLatestSignalView);
+        return res.reply(messages.success('User dashboard'), {
+            oUser: {
+                _id: oUser._id,
+                sEmail: oUser.sEmail,
+                sUsername: oUser.sUsername || '',
+                sBio: oUser.sBio || '',
+                sProfilePicUrl: oUser.sProfilePicUrl || '',
+                bIsProfileComplete: oUser.bIsProfileComplete,
+                dCreatedAt: oUser.dCreatedAt,
+            },
+            oSubscription: subscription,
+            bSignalsLocked: !subscription.active,
+            oCurrentSignal: signals[0] || null,
+            aSignals: signals,
+        });
     } catch (error) {
         return _.catchServerError('dashboard.getUserDashboardData', error, res);
     }

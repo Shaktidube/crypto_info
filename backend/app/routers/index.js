@@ -36,6 +36,13 @@ Router.prototype.setupMiddleware = function () {
     this.app.use(cors(this.corsOptions));
     this.app.use(helmet());
     this.app.use(compression());
+    this.app.use(this.routeConfig);
+    // Stripe signature verification requires the exact, unparsed request body.
+    this.app.post(
+        '/api/v1/billing/webhook',
+        bodyParser.raw({ type: 'application/json' }),
+        require('./billing/controllers').stripeWebhook,
+    );
     this.app.use(bodyParser.json({ limit: '16mb' }));
     this.app.use(
         bodyParser.urlencoded({
@@ -55,7 +62,6 @@ Router.prototype.setupMiddleware = function () {
     }
     this.app.use(express.static('./seeds'));
     this.app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-    this.app.use(this.routeConfig);
     // Per-IP rate limits (requires trust proxy for correct client IP behind ngrok/LB).
     this.app.use('/api/v1/public', publicApiLimiter);
     this.app.use('/api/v1/auth', authApiLimiter);

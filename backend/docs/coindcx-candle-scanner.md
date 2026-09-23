@@ -30,8 +30,9 @@ Execution status is stored on each alert as `oTradeExecution`.
 
 Leave `COINDCX_CRON_SCHEDULE` empty to use the timeframe default.
 
-By default it uses the legacy volume/ATR-confirmed **Bearish Harami** detector
-(`CANDLE_USE_ANALYSIS_ENGINE=false`) so alert behavior stays unchanged.
+By default it uses the layered analysis engine with premium multi-candle
+patterns. Set `CANDLE_USE_ANALYSIS_ENGINE=false` only when temporarily
+reproducing the legacy volume/ATR-confirmed **Bearish Harami** behavior.
 
 ## Candlestick analysis layer
 
@@ -40,7 +41,10 @@ The modular engine under `app/services/candlestick` implements:
 `OHLCV → CandleMetrics → PatternDetectors → MarketContext → Confirmation → SignalScorer`
 
 Pattern geometry is evaluated separately from trend context and optional
-indicator confirmation (SMA trend, ATR, RSI, Stochastic %K, volume SMA).
+indicator confirmation. Prior trend is measured only on candles before the
+pattern and requires agreement from price/SMA, fast/slow SMA alignment, slope,
+ATR-normalized movement, directional efficiency, and market structure. RSI,
+Stochastic %K, ATR, and volume then provide independent confirmation.
 A detected pattern is treated as **evidence**, not a trade instruction
 (`tradeAction: 'none'`).
 
@@ -50,8 +54,18 @@ Enable with:
 CANDLE_USE_ANALYSIS_ENGINE=true
 CANDLE_ENABLED_PATTERNS=Bearish Harami,Evening Star,Three Inside Down
 CANDLE_REQUIRE_CONTEXT_MATCH=true
-CANDLE_MIN_CONFIDENCE=0.35
+CANDLE_REQUIRE_PRICE_CONFIRMATION=true
+CANDLE_MIN_CONFIDENCE=0.55
 ```
+
+With price confirmation enabled, two-candle patterns are emitted only after
+the next closed candle breaks the pattern high/low in the expected direction.
+This deliberately trades earlier entry for fewer false positives. Three-candle
+patterns are already price-confirmed by their formation rules.
+
+`nConfidence` is an evidence score, not a measured win probability. Calibrate
+thresholds separately for each timeframe using walk-forward historical data;
+do not compare a 1-minute configuration directly with 4-hour or daily results.
 
 Thresholds for qualitative book language (doji size, hammer wick ratios, etc.)
 live in `app/services/candlestick/thresholds.js` and are overridable via the

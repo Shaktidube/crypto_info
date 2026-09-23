@@ -317,6 +317,8 @@ class CoinDCXCandleScanner {
             const signal = analyzeForAlert(buffer, {
                 enabledPatterns: config.CANDLE_ENABLED_PATTERNS,
                 requireContextMatch: config.CANDLE_REQUIRE_CONTEXT_MATCH,
+                requirePriceConfirmation:
+                    config.CANDLE_REQUIRE_PRICE_CONFIRMATION,
                 highQualityOnly: config.CANDLE_HIGH_QUALITY_ONLY,
                 minConfidence: config.CANDLE_MIN_CONFIDENCE,
                 tradeSideMode: config.TRADE_SIDE_MODE,
@@ -348,6 +350,8 @@ class CoinDCXCandleScanner {
                     haramiMinAtrMultiplier: config.CANDLE_MIN_ATR_MULTIPLIER,
                     haramiMinVolumeMultiplier:
                         config.CANDLE_MIN_VOLUME_MULTIPLIER,
+                    confirmationMinVolumeMultiplier:
+                        config.CANDLE_MIN_VOLUME_MULTIPLIER,
                     haramiMaxInnerBodyRatio:
                         config.CANDLE_MAX_INNER_BODY_RATIO,
                     haramiBodyTolerancePercent:
@@ -357,7 +361,7 @@ class CoinDCXCandleScanner {
             if (signal) result = signal;
         } else if (config.TRADE_SIDE_MODE !== 'long' &&
             config.CANDLE_ENABLED_PATTERNS
-            .some((name) => name.toLowerCase() === 'bearish harami')) {
+                .some((name) => name.toLowerCase() === 'bearish harami')) {
             result = detectBearishHarami(buffer, legacyOptions);
             if (result) {
                 const { attachTradePlan } = require('../candlestick');
@@ -561,6 +565,8 @@ class CoinDCXCandleScanner {
                 bUseAnalysisEngine: config.CANDLE_USE_ANALYSIS_ENGINE,
                 aEnabledPatterns: config.CANDLE_ENABLED_PATTERNS,
                 bRequireContextMatch: config.CANDLE_REQUIRE_CONTEXT_MATCH,
+                bRequirePriceConfirmation:
+                    config.CANDLE_REQUIRE_PRICE_CONFIRMATION,
                 nMinConfidence: config.CANDLE_MIN_CONFIDENCE,
                 sTradeSideMode: config.TRADE_SIDE_MODE,
                 bHighQualityOnly: config.CANDLE_HIGH_QUALITY_ONLY,

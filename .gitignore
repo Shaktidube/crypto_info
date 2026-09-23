@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+**/test-results/
+**/playwright-report/
+.env
+**/.env
+!.env.example
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*

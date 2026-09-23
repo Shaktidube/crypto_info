@@ -6,6 +6,7 @@ const Cms = require('./lib/Cms');
 const Feature = require('./lib/Feature');
 const NewsArticle = require('./lib/NewsArticle');
 const CandleAlert = require('./lib/CandleAlert');
+const Payment = require('./lib/Payment');
 
 module.exports = {
     Admin,
@@ -16,4 +17,5 @@ module.exports = {
     Feature,
     NewsArticle,
     CandleAlert,
+    Payment,
 };

@@ -37,7 +37,7 @@ function buildConfirmation(candlesThroughSignal, direction, thresholds) {
     }
 
     const volumeSupports = volumeMultiplier != null &&
-        volumeMultiplier >= 1.0;
+        volumeMultiplier >= thresholds.confirmationMinVolumeMultiplier;
 
     const parts = [];
     if (rsi != null) parts.push(`RSI=${rsi.toFixed(1)}`);
@@ -46,9 +46,11 @@ function buildConfirmation(candlesThroughSignal, direction, thresholds) {
         parts.push(`volx=${volumeMultiplier.toFixed(2)}`);
     }
 
-    const confirmBits = [rsiSupports, stochSupports, volumeSupports]
+    // Volume has its own scoring weight. Keep it out of indicator strength so
+    // the same evidence is not counted twice in the final confidence score.
+    const confirmBits = [rsiSupports, stochSupports]
         .filter(Boolean).length;
-    const strength = confirmBits / 3;
+    const strength = confirmBits / 2;
 
     return {
         atr,

@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const otpGenerator = require('otp-generator');
-const axios = require('axios');
+const { OAuth2Client } = require('google-auth-library');
 const { nodemailer, globalCache, aws } = require('../../utils');
 const {
     canSkipOtpForDevice,
@@ -17,6 +17,7 @@ const { validationResult } = require('express-validator');
 const config = require('../../../config/config');
 
 const saltRounds = 10;
+const googleClient = new OAuth2Client(config.GOOGLE_CLIENT_ID);
 
 const controllers = {};
 
@@ -119,7 +120,7 @@ async function sendOtpEmailAndPersist(sEmail, user) {
             to: sEmail,
             subject: `Your OTP for ${config.SITE_NAME}`,
         },
-    ).catch((err) => console.error('user.sendOTP.mail', err));
+    );
 
     return { rateLimited: false };
 }
@@ -487,7 +488,8 @@ controllers.updateProfile = async (req, res) =>{
 };
 
 // POST /auth/user/google
-// Body: { sIdToken }  — Google access token from client SDK
+// Body: { sIdToken } — Google Identity Services ID-token credential.
+// A valid Google identity starts email OTP; it does not create a session yet.
 controllers.googleAuth = async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -500,13 +502,19 @@ controllers.googleAuth = async (req, res) => {
 
         const { sIdToken } = req.body;
 
+        if (!config.GOOGLE_CLIENT_ID) {
+            return res.reply(messages.server_error(
+                'Google sign-in is not configured',
+            ));
+        }
+
         let googleUser;
         try {
-            const response = await axios.get(
-                'https://www.googleapis.com/oauth2/v3/userinfo',
-                { headers: { Authorization: `Bearer ${sIdToken}` } }
-            );
-            googleUser = response.data;
+            const ticket = await googleClient.verifyIdToken({
+                idToken: sIdToken,
+                audience: config.GOOGLE_CLIENT_ID,
+            });
+            googleUser = ticket.getPayload();
         } catch (err) {
             return res.reply(messages.invalid('Google token'));
         }
@@ -515,7 +523,11 @@ controllers.googleAuth = async (req, res) => {
             sub: sGoogleId,
             email: sEmail,
             picture: sPicture,
+            email_verified: emailVerified,
         } = googleUser;
+        if (!sGoogleId || !sEmail || emailVerified !== true) {
+            return res.reply(messages.invalid('Google account'));
+        }
 
         let user = await User.findOne({
             $or: [{ sGoogleId }, { sEmail }],
@@ -544,11 +556,14 @@ controllers.googleAuth = async (req, res) => {
             }
         }
 
-        const session = await issueUserSession(user, { trusted: true });
+        await user.save();
+        const otpResult = await sendOtpEmailAndPersist(sEmail, user);
+        if (otpResult.rateLimited) {
+            return res.reply(messages.too_many_request());
+        }
 
-        return res.reply(messages.successfully('Google Sign-in'), {
-            bRequiresOtp: false,
-            ...session,
+        return res.reply(messages.successfully('OTP Sent'), {
+            bRequiresOtp: true,
             bIsNewUser,
             sEmail: user.sEmail,
         });

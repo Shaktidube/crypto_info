@@ -32,7 +32,10 @@ function enrichSignal(signal, throughSignal, thresholds, riskOptions = {}) {
     });
     const enriched = {
         ...signal,
-        confirmation,
+        confirmation: {
+            ...confirmation,
+            note: signal.confirmation?.note || '',
+        },
         scores,
         confidence: scores.confidence,
         metrics: {
@@ -43,6 +46,36 @@ function enrichSignal(signal, throughSignal, thresholds, riskOptions = {}) {
         },
     };
     return attachTradePlan(enriched, riskOptions) || enriched;
+}
+
+function confirmPriorDouble(signal, confirmationCandle) {
+    if (!signal || !confirmationCandle || signal.candleCount !== 2) {
+        return null;
+    }
+    const confirms = signal.direction === 'bullish'
+        ? confirmationCandle.close > signal.candles.c2.high &&
+            confirmationCandle.close > confirmationCandle.open
+        : signal.direction === 'bearish'
+            ? confirmationCandle.close < signal.candles.c2.low &&
+                confirmationCandle.close < confirmationCandle.open
+            : false;
+    if (!confirms) return null;
+    const note = 'Next closed candle confirmed beyond the pattern high/low.';
+    return {
+        ...signal,
+        confirmed: true,
+        candles: { ...signal.candles, c3: confirmationCandle },
+        metrics: {
+            ...signal.metrics,
+            candles: [
+                signal.candles.c1,
+                signal.candles.c2,
+                confirmationCandle,
+            ].map(candleMetrics),
+        },
+        confirmation: { ...signal.confirmation, note },
+        explanation: `${signal.explanation} ${note}`,
+    };
 }
 
 /**
@@ -60,6 +93,7 @@ function analyzeCandles(candles, options = {}) {
         : null;
     const riskOptions = options.riskOptions || {};
     const highQualityOnly = options.highQualityOnly === true;
+    const requirePriceConfirmation = options.requirePriceConfirmation === true;
     const qualityOptions = options.qualityOptions || {};
     const tradeSideMode = options.tradeSideMode || 'both';
 
@@ -87,6 +121,42 @@ function analyzeCandles(candles, options = {}) {
         if (candleCount === 3) found = detectTriples(closed, args);
 
         for (const signal of found) {
+            if (requirePriceConfirmation && signal.candleCount < 3) continue;
+            if (requireContextMatch && !signal.context.matched) continue;
+            if (enabled && !enabled.has(signal.patternName.toLowerCase())) {
+                continue;
+            }
+            const enriched = enrichSignal(
+                signal, closed, thresholds, riskOptions,
+            );
+            if (highQualityOnly &&
+                !isHighQualitySignal(enriched, qualityOptions)) {
+                continue;
+            }
+            if (!allowsTradeSide(tradeSideMode, signalTradeSide(enriched))) {
+                continue;
+            }
+            signals.push(enriched);
+        }
+    }
+
+    // When precision is preferred over immediacy, re-check a two-candle
+    // pattern that ended one bar ago and emit it only after a third closed bar
+    // breaks the pattern in the expected direction.
+    if (requirePriceConfirmation && closed.length >= 3) {
+        const beforeConfirmation = closed.slice(0, -1);
+        const context = buildContext(beforeConfirmation, 2, thresholds);
+        const confirmationStub = buildConfirmation(
+            beforeConfirmation, 'neutral', thresholds,
+        );
+        const priorSignals = detectDoubles(beforeConfirmation, {
+            thresholds,
+            context,
+            confirmation: confirmationStub,
+        });
+        for (const priorSignal of priorSignals) {
+            const signal = confirmPriorDouble(priorSignal, closed.at(-1));
+            if (!signal) continue;
             if (requireContextMatch && !signal.context.matched) continue;
             if (enabled && !enabled.has(signal.patternName.toLowerCase())) {
                 continue;
@@ -107,6 +177,7 @@ function analyzeCandles(candles, options = {}) {
 
     signals.sort((a, b) =>
         b.confidence - a.confidence ||
+        Number(b.confirmed) - Number(a.confirmed) ||
         b.candleCount - a.candleCount);
 
     return {
@@ -124,6 +195,7 @@ function analyzeForAlert(candles, options = {}) {
         enabledPatterns: options.enabledPatterns,
         thresholds: options.thresholds,
         highQualityOnly: options.highQualityOnly === true,
+        requirePriceConfirmation: options.requirePriceConfirmation === true,
         qualityOptions: options.qualityOptions,
         riskOptions: options.riskOptions,
         tradeSideMode: options.tradeSideMode || 'both',
